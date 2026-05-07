@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dugsiga Iftiin Attendance</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:#0f172a;
+color:#e5e7eb;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+}
+
+.header{
+text-align:center;
+margin-bottom:20px;
+}
+
+.header h1{
+color:#38bdf8;
+font-size:35px;
+}
+
+/* fasallo */
+
+.c1{background:#1e293b;}
+.c2{background:#1f3d2b;}
+.c3{background:#3f3a1a;}
+.c4{background:#3b1f1f;}
+.c5{background:#2e1065;}
+
+/* tabs */
+
+.tabs{
+display:flex;
+gap:10px;
+justify-content:center;
+flex-wrap:wrap;
+margin-bottom:15px;
+}
+
+.tabs button{
+padding:10px 15px;
+border:none;
+border-radius:20px;
+background:#1e293b;
+color:white;
+cursor:pointer;
+font-weight:bold;
+}
+
+.active{
+outline:2px solid #38bdf8;
+}
+
+/* card */
+
+.card{
+padding:20px;
+border-radius:15px;
+box-shadow:0 0 20px rgba(0,0,0,.4);
+}
+
+/* inputs */
+
+input,textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:10px;
+background:#111827;
+color:white;
+font-size:15px;
+}
+
+/* buttons */
+
+button{
+margin-top:8px;
+padding:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.add-btn{
+background:#22c55e;
+color:white;
+width:100%;
+}
+
+.report-btn{
+background:#6366f1;
+color:white;
+width:100%;
+}
+
+.delete-btn{
+background:#ef4444;
+color:white;
+padding:6px 12px;
+}
+
+.clear-btn{
+background:#f59e0b;
+color:white;
+padding:6px 12px;
+}
+
+/* student */
+
+.student{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#111827;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
+transition:.3s;
+}
+
+.student:hover{
+transform:scale(1.01);
+}
+
+.glow{
+box-shadow:0 0 15px #38bdf8;
+}
+
+.absent{
+color:#f87171;
+font-weight:bold;
+}
+
+/* modal */
+
+.modal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.7);
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.modal-box{
+background:#1e293b;
+padding:20px;
+border-radius:15px;
+width:100%;
+max-width:500px;
+max-height:80vh;
+overflow:auto;
+}
+
+.report-item{
+background:#111827;
+padding:10px;
+margin-top:10px;
+border-radius:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h1>Dugsiga Iftiin Attendance</h1>
+<p>📚 Nidaamka Imaanshaha Ardayda</p>
+</div>
+
+<!-- FASALLO -->
+
+<div class="tabs">
+
+<button onclick="setClass(1)">Fasal 1</button>
+
+<button onclick="setClass(2)">Fasal 2</button>
+
+<button onclick="setClass(3)">Fasal 3</button>
+
+<button onclick="setClass(4)">Fasal 4</button>
+
+<button onclick="setClass(5)">Fasal 5</button>
+
+</div>
+
+<!-- DATE -->
+
+<input type="date" id="date" onchange="render()">
+
+<!-- CARD -->
+
+<div id="card" class="card c1">
+
+<!-- STUDENT -->
+
+<input id="name" placeholder="Magaca ardayga">
+
+<button class="add-btn" onclick="addStudent()">
+➕ Ku dar arday
+</button>
+
+<!-- SUBJECTS -->
+
+<input id="lesson1" placeholder="📚 Xiisad 1">
+
+<input id="lesson2" placeholder="📚 Xiisad 2">
+
+<input id="lesson3" placeholder="📚 Xiisad 3">
+
+<input id="lesson4" placeholder="📚 Xiisad 4">
+
+<!-- BULK -->
+
+<textarea id="bulk" placeholder="Ku dar arday badan"></textarea>
+
+<button class="add-btn" onclick="addBulk()">
+📥 Ku dar dhammaan
+</button>
+
+<!-- REPORT -->
+
+<button class="report-btn" onclick="dailyReport()">
+📊 Warbixin Maalinle
+</button>
+
+<!-- SEARCH -->
+
+<input
+id="search"
+placeholder="🔍 Raadi arday..."
+oninput="render()"
+>
+
+<!-- LIST -->
+
+<div id="list"></div>
+
+</div>
+</div>
+
+<!-- MODAL -->
+
+<div class="modal" id="modal">
+
+<div class="modal-box">
+
+<h2>📊 Warbixin Maalinle</h2>
+
+<div id="report"></div>
+
+<button class="delete-btn" onclick="closeModal()">
+Xir
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* DATA */
+
+let current = 1
+
+let students = {
+1:[],
+2:[],
+3:[],
+4:[],
+5:[]
+}
+
+let attendance = {
+1:{},
+2:{},
+3:{},
+4:{},
+5:{}
+}
+
+/* SAVE */
+
+function save(){
+
+localStorage.setItem(
+"sys",
+JSON.stringify({
+students,
+attendance
+})
+)
+
+}
+
+/* LOAD */
+
+function load(){
+
+let d = localStorage.getItem("sys")
+
+if(d){
+
+let data = JSON.parse(d)
+
+students = data.students || students
+attendance = data.attendance || attendance
+
+for(let i=1;i<=5;i++){
+
+if(!students[i]) students[i]=[]
+if(!attendance[i]) attendance[i]={}
+
+}
+
+}
+
+}
+
+/* DATE */
+
+function getDate(){
+
+return document.getElementById("date").value
+||
+new Date().toISOString().slice(0,10)
+
+}
+
+/* CLASS */
+
+function setClass(c){
+
+current = c
+
+document.getElementById("card").className =
+"card c"+c
+
+document.querySelectorAll(".tabs button")
+.forEach((b,i)=>{
+
+b.classList.toggle(
+"active",
+i===c-1
+)
+
+})
+
+render()
+
+}
+
+/* ADD STUDENT */
+
+function addStudent(){
+
+let n =
+document.getElementById("name")
+.value.trim()
+
+if(!n){
+
+alert("Geli magaca ardayga")
+return
+
+}
+
+if(students[current].includes(n)){
+
+alert("Ardaygan hore ayuu u jiraa")
+return
+
+}
+
+students[current].push(n)
+
+document.getElementById("name").value=""
+
+save()
+render()
+
+}
+
+/* BULK */
+
+function addBulk(){
+
+let arr =
+document.getElementById("bulk")
+.value.split(/[\n,]+/)
+
+arr.forEach(n=>{
+
+n=n.trim()
+
+if(
+n &&
+!students[current].includes(n)
+){
+
+students[current].push(n)
+
+}
+
+})
+
+document.getElementById("bulk").value=""
+
+save()
+render()
+
+}
+
+/* DELETE */
+
+function del(i){
+
+let n = students[current][i]
+
+if(!confirm("Ma hubtaa tirtirida?"))
+return
+
+if(prompt("Qor DELETE")!=="DELETE")
+return
+
+students[current].splice(i,1)
+
+delete attendance[current][n]
+
+save()
+render()
+
+}
+
+/* ATTENDANCE */
+
+function toggle(i){
+
+let n = students[current][i]
+
+let d = getDate()
+
+/* XIISADO BADAN */
+
+let lessons = [
+
+document.getElementById("lesson1").value.trim(),
+
+document.getElementById("lesson2").value.trim(),
+
+document.getElementById("lesson3").value.trim(),
+
+document.getElementById("lesson4").value.trim()
+
+].filter(x=>x!=="")
+
+if(lessons.length===0){
+
+alert("Geli ugu yaraan hal xiisad")
+return
+
+}
+
+if(!attendance[current][n]){
+
+attendance[current][n]={}
+
+}
+
+if(attendance[current][n][d]){
+
+delete attendance[current][n][d]
+
+}else{
+
+attendance[current][n][d] =
+lessons.map(l=>({
+lesson:l
+}))
+
+}
+
+save()
+render()
+
+}
+
+/* CLEAR */
+
+function clearAbsent(name){
+
+let d = getDate()
+
+if(attendance[current][name]){
+
+delete attendance[current][name][d]
+
+}
+
+save()
+render()
+
+}
+
+/* RENDER */
+
+function render(){
+
+let box =
+document.getElementById("list")
+
+box.innerHTML=""
+
+let search =
+document.getElementById("search")
+.value.toLowerCase()
+
+let d = getDate()
+
+students[current].forEach((n,i)=>{
+
+let match =
+n.toLowerCase().includes(search)
+
+if(search && !match) return
+
+let day =
+(attendance[current][n]||{})[d]
+
+box.innerHTML += `
+
+<div class="student ${search && match ? "glow":""}">
+
+<span>
+
+<b>${n}</b><br>
+
+${day ?
+
+`<span class="absent">
+
+Maqan:
+${day.map(x=>x.lesson).join(" , ")}
+
+</span>`
+
+:""}
+
+</span>
+
+<div>
+
+<input
+type="checkbox"
+${day ? "checked":""}
+onclick="toggle(${i})"
+>
+
+${day ?
+
+`<button
+class="clear-btn"
+onclick="clearAbsent('${n}')">
+Nadiifi
+</button>`
+
+:""}
+
+<button
+class="delete-btn"
+onclick="del(${i})">
+Delete
+</button>
+
+</div>
+
+</div>
+
+`
+
+})
+
+}
+
+/* REPORT */
+
+function dailyReport(){
+
+let d = getDate()
+
+let html = ""
+
+for(let c=1;c<=5;c++){
+
+let count = 0
+
+students[c].forEach(n=>{
+
+let day =
+(attendance[c][n]||{})[d]
+
+if(day) count++
+
+})
+
+html += `
+
+<div class="report-item">
+
+<h3>Fasal ${c}</h3>
+
+<p>📌 Tirada maqan:
+<b>${count}</b></p>
+
+</div>
+
+`
+
+}
+
+document.getElementById("report")
+.innerHTML = html
+
+document.getElementById("modal")
+.style.display = "flex"
+
+}
+
+/* CLOSE */
+
+function closeModal(){
+
+document.getElementById("modal")
+.style.display = "none"
+
+}
+
+/* INIT */
+
+load()
+
+document.getElementById("date").value =
+new Date().toISOString().slice(0,10)
+
+setClass(1)
+
+</script>
+
+</body>
+</html>
